@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 元宝猫猫创造营</title>
+    <style>
+        body { margin: 0; font-family: 'Comic Sans MS', 'ZCOOL KuaiLe', sans-serif; background: #f0f9ff; display: flex; height: 100vh; }
+        .sidebar-level-1 { width: 180px; background: linear-gradient(180deg, #ffde7d, #ff9a76); padding: 20px 10px; }
+        .level-1-item { padding: 18px 10px; margin-bottom: 15px; background: white; border-radius: 20px; text-align: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .level-1-item.active { background: #ff6b6b; color: white; }
+
+        .sidebar-level-2 { width: 200px; background: #a8e6cf; padding: 20px 10px; overflow-y: auto; }
+        .level-2-group h3 { color: #2d3436; }
+        .level-2-item { padding: 12px; margin-bottom: 10px; background: #fff; border-radius: 15px; cursor: pointer; text-align: center; border: 3px dashed transparent; }
+        .level-2-item.active { background: #74b9ff; color: white; }
+
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; background: #dfe6e9; }
+        .link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+        .link-card { background: white; border-radius: 25px; padding: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 5px solid #ffeaa7; }
+        .card-btn { display: inline-block; padding: 8px 14px; border-radius: 12px; background: #74b9ff; color: white; text-decoration: none; font-size: 14px; margin: 5px; cursor: pointer; }
+        .card-btn.pdf { background: #55efc4; color: #2d3436; }
+
+        /* 全屏遮罩 */
+        .pdf-fullscreen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pdf-fullscreen iframe {
+            width: 90vw; height: 90vh; border-radius: 20px; border: none; background: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar-level-1">
+    <div class="level-1-item active" data-target="robot">🤖<br>机器人搭建</div>
+    <div class="level-1-item" data-target="coding">💻<br>编 程</div>
+</div>
+
+<div class="sidebar-level-2" id="menu-container"></div>
+<div class="main-content" id="content-container"></div>
+
+<script>
+
+const siteData = {
+    robot: {
+        sub: {
+            "大颗粒": ["启蒙班", "进阶班"],
+            "大颗粒动力": ["启蒙班", "进阶班"],
+            "动力机械45400器材": ["基础", "进阶"],
+            "SPIKE基础45401+45345器材": ["一阶", "二阶"],
+            "SPIKE进阶45680+45678器材": ["一阶", "二阶"],
+            "EV3": ["结构设计", "逻辑编程"]
+        },
+        links: {
+            // 大颗粒
+            "大颗粒-启蒙班": [
+                { name: "第01课：认识积木", url: "https://www.baidu.com", pdfUrl: "drawings/大颗粒/启蒙班/第01课.pdf" },
+                { name: "第02课：搭小车", url: "https://www.baidu.com", pdfUrl: "drawings/大颗粒/启蒙班/第02课.pdf" }
+            ],
+            "大颗粒-进阶班": [
+                { name: "第01课：齿轮传动", url: "#", pdfUrl: "drawings/大颗粒/进阶班/第01课.pdf" }
+            ],
+
+            // 动力机械
+            "动力机械45400器材-基础": [
+                { name: "体验课：迷你小车", url: "https://icourseware.magaoedu.com/tiyanke/robot/jixiedongli/minixiaoche/ppt/index.html", pdfUrl: "drawings/动力机械基础/体验课-迷你小车.pdf" },
+                { name: "第01课：加速陀螺", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/01/index.html", pdfUrl: "drawings/动力机械基础/第01课-加速陀螺.pdf" },
+                { name: "第02课：小风扇", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/02/index.html", pdfUrl: "drawings/动力机械基础/第02课-小风扇.pdf" },
+                { name: "第03课：小火车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/03/index.html", pdfUrl: "drawings/动力机械基础/第03课-小火车.pdf" },
+                { name: "第04课：旋转飞椅", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/04/index.html", pdfUrl: "drawings/动力机械基础/第04课-旋转飞椅.pdf" },
+                { name: "第05课：旋转门", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/05/index.html", pdfUrl: "drawings/动力机械基础/第05课-旋转门.pdf" },
+                { name: "第06课：摩天轮", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/06/index.html", pdfUrl: "drawings/动力机械基础/第06课-摩天轮.pdf" },
+                { name: "第07课：腾飞的龙", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/07/index.html", pdfUrl: "drawings/动力机械基础/第07课-腾飞的龙.pdf" },
+                { name: "第08课：四驱车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/08/index.html", pdfUrl: "drawings/动力机械基础/第08课-四驱车.pdf" },
+                { name: "第09课：毛虫小车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/09/index.html", pdfUrl: "drawings/动力机械基础/第09课-毛虫小车.pdf" },
+                { name: "第10课：风力小车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/10/index.html", pdfUrl: "drawings/动力机械基础/第10课-风力小车.pdf" },
+                { name: "第11课：钓鱼竿", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/11/index.html", pdfUrl: "drawings/动力机械基础/第11课-钓鱼竿.pdf" },
+                { name: "第12课：海盗船", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/12/index.html", pdfUrl: "drawings/动力机械基础/第12课-海盗船.pdf" },
+                { name: "第13课：飞翔的小鸟", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/13/index.html", pdfUrl: "drawings/动力机械基础/第13课-飞翔的小鸟.pdf" },
+                { name: "第14课：电动三轮车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/14/index.html", pdfUrl: "drawings/动力机械基础/第14课-电动三轮车.pdf" },
+                { name: "第15课：电梯", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/15/index.html", pdfUrl: "drawings/动力机械基础/第15课-电梯.pdf" },
+                { name: "第16课：杂技小人", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/16/index.html", pdfUrl: "drawings/动力机械基础/第16课-杂技小人.pdf" },
+                { name: "第17课：打蛋器", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/17/index.html", pdfUrl: "drawings/动力机械基础/第17课-打蛋器.pdf" },
+                { name: "第18课：愤怒的拳击手", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/ppt/18/index.html", pdfUrl: "drawings/动力机械基础/第18课-愤怒的拳击手.pdf" }
+            ],
+            
+
+            "动力机械45400器材-进阶": [
+	{ "name": "第01课：转向小车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/01/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第01课.pdf" },
+
+	{ "name": "第02课：高尔夫", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/02/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第02课.pdf" },
+
+	{ "name": "第03课：减震车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/03/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第03课.pdf" },
+
+	{ "name": "第04课：充气滑梯", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/04/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第04课.pdf" },
+
+	{ "name": "第05课：加速小车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/05/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第05课.pdf" },
+
+	{ "name": "第06课：暂时没有", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/06/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第06课.pdf" },
+
+	{ "name": "第07课：摇头风扇", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/07/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第07课.pdf" },
+
+	{ "name": "第08课：升旗仪式", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/08/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第08课.pdf" },
+
+	{ "name": "第09课：超级赛车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/09/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第09课.pdf" },
+
+	{ "name": "第10课：击剑小人", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/10/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第10课.pdf" },
+
+	{ "name": "第11课：云梯", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/11/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第11课.pdf" },
+
+	{ "name": "第12课：人猿泰山", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/12/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第12课.pdf" },
+
+	{ "name": "第13课：换挡小车", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/13/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第13课.pdf" },
+
+	{ "name": "第14课：推磨小人", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/14/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第14课.pdf" },
+
+	{ "name": "第15课：空中俯卧撑", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/15/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第15课.pdf" },
+
+	{ "name": "第16课：滑雪小人", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/16/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第16课.pdf" },
+
+	{ "name": "第17课：旋转伞", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/17/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第17课.pdf" },
+
+	{ "name": "第18课：螺旋桨飞机", url: "https://icourseware.magaoedu.com/11.0kecheng/jixiedongli/erjie/PPT/18/index.html", pdfUrl: "drawings/动力机械进阶/进阶课-第18课.pdf" }
+
+],
+
+            // ✅ SPIKE 基础（一阶 01–18）
+            "SPIKE基础45401+45345器材-一阶": [
+                { name: "体验课：旋转飞椅", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/tiyanke/ppt_1/index.html", pdfUrl: "drawings/SPIKE基础/一阶/体验课.pdf" },
+                { name: "第01课：打击小车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/01/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第01课.pdf" },
+                { name: "第02课：智能小车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/02/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第02课.pdf" },
+                { name: "第03课：弹珠游戏", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/03/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第03课.pdf" },
+                { name: "第04课：水坝", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/04/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第04课.pdf" },
+                { name: "第05课：保龄球", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/05/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第05课.pdf" },
+                { name: "第06课：地震测试", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/06/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第06课.pdf" },
+                { name: "第07课：智能门禁", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/07/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第07课.pdf" },
+                { name: "第08课：赛车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/08/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第08课.pdf" },
+                { name: "第09课：垃圾翻斗车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/09/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第09课.pdf" },
+                { name: "第10课：空中索道", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/10/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第10课.pdf" },
+                { name: "第11课：叉车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/11/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第11课.pdf" },
+                { name: "第12课：快递平板车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/12/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第12课.pdf" },
+                { name: "第13课：火箭发射", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/13/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第13课.pdf" },
+                { name: "第14课：升降机", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/14/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第14课.pdf" },
+                { name: "第15课：投篮游戏", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/15/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第15课.pdf" },
+                { name: "第16课：机械钳", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/16/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第16课.pdf" },
+                { name: "第17课：四驱车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/17/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第17课.pdf" },
+                { name: "第18课：推车小人", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/yijie/PPT/18/index.html", pdfUrl: "drawings/SPIKE基础/一阶/第18课.pdf" }
+            ],
+
+            // ✅ SPIKE 基础（二阶 01–18）
+            "SPIKE基础45401+45345器材-二阶": [
+    	{ name: "第01课：直升飞机", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/010/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第01课.pdf" },
+    	{ name: "第02课：单杠小人", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/02/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第02课.pdf" },
+   	 { name: "第03课：疫苗制作", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/03/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第03课.pdf" },
+    	{ name: "第04课：智能抽屉", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/04/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第04课.pdf" },
+   	 { name: "第05课：智能垃圾桶", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/05/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第05课.pdf" },
+    	{ name: "第06课：安全门", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/06/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第06课.pdf" },
+   	 { name: "第07课：方舱小助手", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/07/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第07课.pdf" },
+    	{ name: "第08课：转向小车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/08/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第08课.pdf" },
+    	{ name: "第09课：骑车小人", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/09/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第09课.pdf" },
+   	 { name: "第10课：摇摇马", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/10/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第10课.pdf" },
+    	{ name: "第11课：扫地车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/11/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第11课.pdf" },
+    	{ name: "第12课：太空训练器", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/12/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第12课.pdf" },
+    	{ name: "第13课：奔跑的小狗", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/13/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第13课.pdf" },
+    	{ name: "第14课：小马骑士", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/14/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第14课.pdf" },
+    	{ name: "第15课：拉力机器人", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/15/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第15课.pdf" },
+    	{ name: "第16课：磁悬浮列车", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/16/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第16课.pdf" },
+   	 { name: "第17课：UFO", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/17/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第17课.pdf" },
+    	{ name: "第18课：垃圾分类器", url: "https://icourseware.magaoedu.com/11.0kecheng/spikejichu/erjie/PPT/18/index.html", pdfUrl: "drawings/SPIKE基础/二阶/第18课.pdf" }
+
+            ],
+
+            // SPIKE 进阶
+           "SPIKE进阶45680+45678器材-一阶": [
+	{ name: "体验课：小犀牛", url: "https://icourseware.magaoedu.com/Spike/tiyanke1xiniu/ppt/index.html", pdfUrl: "drawings/SPIKE进阶/第01课.pdf" },
+
+	{ name: "第01课：爬行小虫", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/01/index.html", pdfUrl: "drawings/SPIKE进阶/第01课.pdf" },
+
+	{ name: "第02课：揽客机器人", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/02/index.html", pdfUrl: "drawings/SPIKE进阶/第02课.pdf" },
+
+	{ name: "第03课：跳舞机器人", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/03/index.html", pdfUrl: "drawings/SPIKE进阶/第03课.pdf" },
+
+	{ name: "第04课：双人抬轿", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/04/index.html", pdfUrl: "drawings/SPIKE进阶/第04课.pdf" },
+
+	{ name: "第05课：赛跑陷阱", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/05/index.html", pdfUrl: "drawings/SPIKE进阶/第05课.pdf" },
+
+	{ name: "第06课：俯卧撑", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/06/index.html", pdfUrl: "drawings/SPIKE进阶/第06课.pdf" },
+
+	{ name: "第07课：指南车", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/07/index.html", pdfUrl: "drawings/SPIKE进阶/第07课.pdf" },
+
+	{ name: "第08课：电子秤", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/08/index.html", pdfUrl: "drawings/SPIKE进阶/第08课.pdf" },
+
+	{ name: "第09课：举重机器人", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/09/index.html", pdfUrl: "drawings/SPIKE进阶/第09课.pdf" },
+
+	{ name: "第10课：鹬", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/10/index.html", pdfUrl: "drawings/SPIKE进阶/第10课.pdf" },
+
+	{ name: "第11课：巡线机器人", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/11/index.html", pdfUrl: "drawings/SPIKE进阶/第11课.pdf" },
+
+	{ name: "第12课：暂时没有", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/12/index.html", pdfUrl: "drawings/SPIKE进阶/第12课.pdf" },
+
+	{ name: "第13课：小甲虫", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/13/index.html", pdfUrl: "drawings/SPIKE进阶/第13课.pdf" },
+
+	{ name: "第14课：轮椅", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/14/index.html", pdfUrl: "drawings/SPIKE进阶/第14课.pdf" },
+
+	{ name: "第15课：三轮摩托车", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/15/index.html", pdfUrl: "drawings/SPIKE进阶/第15课.pdf" },
+
+	{ name: "第16课：踏步车", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/16/index.html", pdfUrl: "drawings/SPIKE进阶/第16课.pdf" },
+
+	{ name: "第17课：叉车", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/17/index.html", pdfUrl: "drawings/SPIKE进阶/第17课.pdf" },
+
+	{ name: "第18课：挖掘机", url: "https://icourseware.magaoedu.com/Spike/11.0/level1/PPT/18/index.html", pdfUrl: "drawings/SPIKE进阶/第18课.pdf" }
+
+],
+
+            // EV3
+            "EV3-结构设计": [
+                { name: "EV3 结构", url: "#", pdfUrl: "drawings/EV3/结构设计.pdf" }
+            ],
+            "EV3-逻辑编程": [
+                { name: "EV3 逻辑", url: "#", pdfUrl: "drawings/EV3/逻辑编程.pdf" }
+            ]
+        }
+    },
+
+    coding: {
+        sub: { "Scratch": ["一阶"], "Python": ["基础"], "C++": ["算法入门"] },
+        links: {
+            "Scratch-一阶": [{ name: "小猫走路", url: "#", pdfUrl: "drawings/Scratch/一阶.pdf" }],
+            "Python-基础": [{ name: "Python基础", url: "#", pdfUrl: "drawings/Python/基础.pdf" }],
+            "C++-算法入门": [{ name: "C++入门", url: "#", pdfUrl: "drawings/C++/入门.pdf" }]
+        }
+    }
+};
+
+let currentL1 = 'robot';
+
+function renderMenu() {
+    const c = document.getElementById('menu-container');
+    const d = siteData[currentL1];
+    let h = '';
+    for (const k in d.sub) {
+        h += `<div class="level-2-group"><h3>${k}</h3>`;
+        d.sub[k].forEach(i => h += `<div class="level-2-item" data-l2="${k}" data-l3="${i}">${i}</div>`);
+        h += `</div>`;
+    }
+    c.innerHTML = h;
+    c.querySelector('.level-2-item')?.click();
+}
+
+function renderContent(l2, l3) {
+    const c = document.getElementById('content-container');
+    const links = siteData[currentL1].links[`${l2}-${l3}`] || [];
+    let h = `<h1>📚 ${l2} - ${l3}</h1><div class="link-grid">`;
+    links.forEach(link => {
+        h += `
+        <div class="link-card">
+            <h3>${link.name}</h3>
+            <div style="margin-top:12px;">
+                <a href="${link.url}" target="_blank" class="card-btn">📘 课件</a>
+                ${link.pdfUrl ? `<span class="card-btn pdf" onclick="openPdf('${link.pdfUrl}')">📄 搭建图纸</span>` : ''}
+            </div>
+        </div>`;
+    });
+    h += `</div>`;
+    c.innerHTML = h;
+}
+
+function openPdf(url) {
+    const div = document.createElement('div');
+    div.className = 'pdf-fullscreen';
+    div.innerHTML = `<iframe src="${url}"></iframe>`;
+    div.onclick = () => div.remove();
+    document.body.appendChild(div);
+}
+
+document.querySelectorAll('.level-1-item').forEach(i => i.onclick = () => {
+    document.querySelectorAll('.level-1-item').forEach(x => x.classList.remove('active'));
+    i.classList.add('active');
+    currentL1 = i.dataset.target;
+    renderMenu();
+});
+
+document.getElementById('menu-container').onclick = e => {
+    if (e.target.classList.contains('level-2-item')) {
+        document.querySelectorAll('.level-2-item').forEach(x => x.classList.remove('active'));
+        e.target.classList.add('active');
+        renderContent(e.target.dataset.l2, e.target.dataset.l3);
+    }
+};
+
+renderMenu();
+</script>
+</body>
+</html>

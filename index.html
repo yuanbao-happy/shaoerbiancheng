@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>🔒 元宝猫猫创造营</title>
+    <style>
+        body {
+            margin: 0; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(135deg, #ffde7d, #ff9a76);
+            font-family: 'Comic Sans MS', 'ZCOOL KuaiLe', sans-serif;
+        }
+        .box {
+            background: white; padding: 50px 70px;
+            border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center; border: 6px dashed #ff6b6b;
+        }
+        input {
+            padding: 15px 25px; font-size: 18px;
+            border-radius: 15px; border: 3px solid #74b9ff;
+            outline: none; text-align: center;
+            width: 250px; display: block; margin: 20px auto;
+        }
+        button {
+            padding: 15px 40px; font-size: 18px;
+            border: none; border-radius: 15px;
+            background: #74b9ff; color: white; cursor: pointer;
+            box-shadow: 0 5px 0 #0984e3;
+        }
+        #msg { margin-top: 15px; color: #ff6b6b; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>🔒 元宝猫猫创造营</h1>
+    <input id="pwd" type="password" placeholder="请输入访问口令">
+    <button onclick="check()">🐾 进入营地</button>
+    <div id="msg"></div>
+</div>
+
+<script>
+/* 
+
+*/
+const PASSWORD_ENCODED = "eXVhbmJhb2tlYWk=";
+
+function check() {
+    const input = document.getElementById('pwd').value;
+    
+    // Base64 编码比较
+    const encodedInput = btoa(unescape(encodeURIComponent(input)));
+    
+    if (encodedInput === PASSWORD_ENCODED) {
+        // 验证成功，跳转到内容页
+        window.location.href = "yuanbaomaomao.html";
+    } else {
+        document.getElementById('msg').innerText = "喵！密码不对哦～";
+    }
+}
+
+// 支持回车键
+document.getElementById('pwd').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        check();
+    }
+});
+
+// 自动聚焦
+setTimeout(function() {
+    document.getElementById('pwd').focus();
+}, 100);
+</script>
+</body>
+</html>
